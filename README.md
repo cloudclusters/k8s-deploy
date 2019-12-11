@@ -40,7 +40,7 @@ Automatic deployment of `Kubernetes cluster` via ansible script.
 ```shell
 export K8S_INSTALL_DIR="/opt"
 cd $K8S_INSTALL_DIR
-git clone https://github.com/linux123zc/k8s-deploy.git
+git clone https://github.com/cloudclusters/k8s-deploy.git
 ```
 2.&nbsp;Install ansible, configure secret-key free login to other nodes on master1.
 ```shell
