@@ -15,7 +15,7 @@ Automatic deployment of `Kubernetes cluster` via ansible script.
 
 ## Environment
 
-| hostname | Private IP |Intranet card |OS |
+| hostname |IP |NIC |OS |
 | ------ | ------ |------ |------|
 | master1 | 192.168.10.148 |ens7 |Ubuntu18.04 |
 | master2 |  192.168.10.149 |ens7 |Ubuntu18.04 |
