@@ -1,0 +1,65 @@
+---
+- name: Download helm release
+  get_url:
+    url: "https://storage.googleapis.com/kubernetes-helm/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "/opt/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    mode: 0755
+
+- name: Unzip helm downloaded file
+  unarchive:
+    src: "/opt/helm-{{ helm_version }}-linux-amd64.tar.gz"
+    dest: "/opt/"
+
+- name: Copy helm binaries to destination directory
+  copy:
+    src: "/opt/linux-amd64/{{ item }}"
+    dest: "{{ bin_dir }}/{{ item }}"
+    mode: 755
+  with_items:
+  - helm
+  - tiller
+
+- name: Create tiller certificates dir
+  file: name={{ item }} state=directory
+  with_items:
+  - "/etc/helm"
+
+- name: Get helm certificates
+  copy: src=/opt/ssl/{{ item }} dest=/etc/helm/{{ item }}
+  with_items:
+  - ca-key.pem
+  - ca.pem
+  - helm-key.pem
+  - helm.pem
+  - tiller.pem
+  - tiller-key.pem
+
+- name: Get helm RBAC yaml file
+  template: src=helm-rbac.yaml.j2 dest={{ yaml_dir }}/helm-rbac.yaml
+
+- name: Create helm RBAC
+  raw: kubectl get sa -n kube-system|grep tiller || kubectl create -f {{ yaml_dir }}/helm-rbac.yaml
+
+- name: Deploy tiller
+  shell: helm init \
+        --tiller-tls \
+        --tiller-tls-verify \
+        --tiller-tls-cert /etc/helm/tiller.pem \
+        --tiller-tls-key /etc/helm/tiller-key.pem \
+        --tls-ca-cert /etc/helm/ca.pem \
+        --service-account tiller \
+        --tiller-namespace kube-system 
+
+- name: Create helm certificate dir
+  file: name=/root/.helm state=directory
+
+- name: Copy ca.pem to helm dir
+  copy: src=/etc/helm/{{ item }} dest=/root/.helm/{{ item }}
+  with_items:
+  - ca.pem
+
+- name: Copy helm.pem to helm dir
+  copy: src=/etc/helm/helm.pem dest=/root/.helm/cert.pem
+
+- name: Copy helm.pem to helm dir
+  copy: src=/etc/helm/helm-key.pem dest=/root/.helm/key.pem

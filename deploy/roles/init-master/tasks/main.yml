@@ -1,0 +1,65 @@
+--- 
+- name: Create kubeadm config file
+  template: src=kubeadm-config.yaml.j2 dest={{ kube_config_dir }}/kubeadm-config.yaml  
+
+- name: Check apiserver cert existence
+  stat:
+    path: "{{ kube_cert_dir }}/apiserver.crt"
+  register: old_apiserver_cert
+  run_once: true
+
+- name: kubeadm | Check if kubeadm has already run
+  stat:
+    path: "/var/lib/kubelet/config.yaml"
+  register: kubeadm_already_run
+
+- name: Delete existing admin.conf
+  file:
+    path: "{{ kube_config_dir }}/admin.conf"
+    state: absent
+  when: not kubeadm_already_run.stat.exists
+
+- name: Delete existing static pods
+  file:
+    path: "{{ kube_config_dir }}/manifests/{{item}}.manifest"
+    state: absent
+  with_items: ["kube-apiserver", "kube-controller-manager", "kube-scheduler", "kube-proxy"]
+  when: old_apiserver_cert.stat.exists
+
+- name: Forcefully delete existing static pods
+  shell: "docker ps -f name=k8s_{{item}} -q | xargs --no-run-if-empty docker rm -f"
+  with_items: ["kube-apiserver", "kube-controller-manager", "kube-scheduler"]
+  when: old_apiserver_cert.stat.exists
+
+- name: Reset Kubernetes component
+  shell: "kubeadm reset --force"
+  when: old_apiserver_cert.stat.exists
+  register: reset_cluster
+
+- name: Init kubernetes master
+  command: kubeadm init --config {{ kube_config_dir }}/kubeadm-config.yaml --experimental-upload-certs 
+  register: kubeadm_init
+  retries: 3
+  failed_when: kubeadm_init.rc != 0 and "field is immutable" not in kubeadm_init.stderr
+
+- name: Create kubectl config folder
+  file: name=/root/.kube state=directory
+
+- name: Copy kubectl config
+  shell: cp {{ kube_config_dir }}/admin.conf /root/.kube/config
+  when: kubeadm_init is succeeded
+
+- name: Copy .kube to administrator dir
+  copy: src=/root/.kube dest=/home/administrator/ owner=administrator group=administrator
+
+- name: Get master join command 01
+  shell: echo {{ kubeadm_init.stdout_lines[-12] }} \\ > {{ kube_cert_dir }}/master_join
+
+- name: Get master join command 02
+  shell: echo {{ kubeadm_init.stdout_lines[-11] }} \\ >> {{ kube_cert_dir }}/master_join
+
+- name: Get master join command 03
+  shell: echo {{ kubeadm_init.stdout_lines[-10] }}  >> {{ kube_cert_dir }}/master_join
+
+
+

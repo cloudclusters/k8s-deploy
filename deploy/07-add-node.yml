@@ -1,0 +1,19 @@
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - join-command
+
+- hosts:
+  - nodes
+  gather_facts: False
+  roles:
+  - ntp-client
+  - preinstall
+  - kube-node
+
+
+
+
+
+

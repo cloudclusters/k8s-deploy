@@ -1,0 +1,11 @@
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - ingress
+
+
+
+
+
+

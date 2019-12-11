@@ -1,0 +1,18 @@
+apiVersion: kubeadm.k8s.io/v1beta1
+kind: ClusterConfiguration
+kubernetesVersion: {{ kubernetes_version }}
+apiServerCertSANs:
+- "{{ keepalived_vip }}"
+controlPlaneEndpoint: "{{ keepalived_vip }}:8443"
+etcd:
+  external:
+    endpoints:
+    - https://{{ m1_manager_ip }}:2379
+    - https://{{ m2_manager_ip }}:2379
+    - https://{{ m3_manager_ip }}:2379
+    caFile: {{ etcd_ca_dir }}/ca.pem
+    certFile: {{ etcd_ca_dir }}/etcd.pem
+    keyFile: {{ etcd_ca_dir }}/etcd-key.pem
+networking:
+  podSubnet: "{{ pod_network }}"
+  dnsDomain: "{{ domain }}"

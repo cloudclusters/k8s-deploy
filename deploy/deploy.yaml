@@ -1,0 +1,68 @@
+- hosts:
+  - master01
+  - master02
+  - master03 
+  gather_facts: False
+  roles:
+  - preinstall
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - ntp-server
+- hosts:
+  - master02
+  - master03
+  gather_facts: False
+  roles:
+  - ntp-client
+
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - certificates
+
+- hosts:
+  - lb 
+  gather_facts: False
+  roles:
+  - etcd
+  - lb
+
+- hosts:
+  - master01 
+  gather_facts: False
+  roles:
+  - init-master
+
+- hosts:
+  - master02
+  - master03 
+  gather_facts: False
+  roles:
+  - other-master
+
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - join-command
+
+- hosts:
+  - nodes
+  gather_facts: False
+  roles:
+  - ntp-client
+  - preinstall
+  - kube-node
+
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - flannel
+  - ingress
+  - helm
+  - cert-manager
+  - monitor

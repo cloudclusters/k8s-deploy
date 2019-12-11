@@ -1,0 +1,63 @@
+---
+- name: Check certificate existence
+  stat:
+    path: "/opt/ssl/tiller.pem"
+  register: old_pem
+  run_once: true
+
+- name: Create cert config folder
+  file: name=/opt/ssl state=directory
+  when: not old_pem.stat.exists
+
+- name: Download cfssl
+  get_url:
+    url: https://pkg.cfssl.org/R1.2/cfssl_linux-amd64
+    dest: /usr/local/bin/cfssl
+    mode: 755
+  when: not old_pem.stat.exists
+
+- name: Download cfssljson
+  get_url:
+    url: https://pkg.cfssl.org/R1.2/cfssljson_linux-amd64
+    dest: /usr/local/bin/cfssljson
+    mode: 755
+  when: not old_pem.stat.exists
+
+- name: Create cert CSR and config filses
+  template: src={{ item }} dest=/opt/ssl/{{ item }}
+  with_items:
+  - ca-csr.json
+  - ca-config.json
+  - etcd-csr.json
+  - helm-csr.json
+  - tiller-csr.json
+  when: not old_pem.stat.exists
+
+- name: Generate certificates
+  shell: "cd /opt/ssl && /usr/local/bin/cfssl gencert \
+        -initca ca-csr.json | cfssljson -bare ca" 
+  when: not old_pem.stat.exists
+
+- name: Create etcd certificates
+  shell: "cd /opt/ssl && /usr/local/bin/cfssl gencert \
+        -ca=ca.pem \
+        -ca-key=ca-key.pem \
+        -config=ca-config.json \
+        -profile=kubernetes etcd-csr.json | /usr/local/bin/cfssljson -bare etcd"
+  when: not old_pem.stat.exists
+
+- name: Create helm certificates
+  shell: "cd /opt/ssl && /usr/local/bin/cfssl gencert \
+        -ca=ca.pem \
+        -ca-key=ca-key.pem \
+        -config=ca-config.json \
+        -profile=kubernetes helm-csr.json | /usr/local/bin/cfssljson -bare helm"
+  when: not old_pem.stat.exists
+
+- name: Create tiller certificates
+  shell: "cd /opt/ssl && /usr/local/bin/cfssl gencert \
+        -ca=ca.pem \
+        -ca-key=ca-key.pem \
+        -config=ca-config.json \
+        -profile=kubernetes tiller-csr.json | /usr/local/bin/cfssljson -bare tiller"
+  when: not old_pem.stat.exists 

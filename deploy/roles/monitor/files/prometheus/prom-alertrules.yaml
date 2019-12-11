@@ -1,0 +1,56 @@
+serverFiles:
+  alerts:
+    groups:
+    - name: k8s_alert_rules
+      rules:
+      # ALERT when node is down
+      - alert: node_down
+        expr: (up{component="node-exporter"}) == 0
+        for: 60s
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} is down"
+      - alert: Node_memory_usage_over_80%
+        expr: ((node_memory_MemTotal - (node_memory_MemFree + node_memory_Buffers + node_memory_Cached)) / node_memory_MemTotal * 100) > 80
+        for: 2m
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} memory usage over 80%. Current value: {{ $value }}%"
+      - alert: Node_load5_over_40
+        expr: (node_load5 > 40)
+        for: 2m
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} CPU load5 over 40 . Current value: {{ $value }}"
+      - alert: Node_disk_usage_over_90%
+        expr: ((1 - node_filesystem_free{mountpoint="/etc/hostname"} / node_filesystem_size{mountpoint="/etc/hostname"}) * 100) > 90
+        for: 2m
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} Disk usage over 90%. Current value: {{ $value }}%"
+      - alert: Node_NIC_receive_bandwidth_over_50M
+        expr: (rate(node_network_receive_bytes[3m]) / 1024 / 1024) > 50
+        for: 5m
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} NIC receive bandwidth over 50M. Current value: {{ $value }}"
+      - alert: Node_NIC_transmit_bandwidth_over_50M
+        expr: (rate(node_network_transmit_bytes[3m]) / 1024 / 1024) > 50
+        for: 5m
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} NIC transmit bandwidth over 50M. Current value: {{ $value }}"
+      - alert: Node_cpu_usage_over_85%
+        expr: 100 - (avg by (instance) (irate(node_cpu{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        annotations:
+          summary: "({{ cluster_id }})Node {{ $labels.instance }} cpu usage over 85%. Current value: {{ $value }}%"
+      - alert: Pod_cpu_usage_over_90%
+        expr: sum by(pod_name) (rate(container_cpu_usage_seconds_total{pod_name!=""}[3m])) / (sum(container_spec_cpu_quota{pod_name!=""}/100000) by (pod_name)) *100 > 90
+        for: 5m
+        annotations:
+          summary: "({{ cluster_id }}){{ $labels.pod_name }} cpu usage over 90%. Current value: {{ $value }}%"
+      - alert: Pod_mem_usage_over_90%
+        expr: (sum(container_memory_working_set_bytes{pod_name!=""}) by (pod_name))/ (sum (container_spec_memory_limit_bytes{ pod_name!=""}) by (pod_name)) * 100 > 90 and (sum(container_memory_working_set_bytes{ pod_name!=""}) by (pod_name)) / (sum (container_spec_memory_limit_bytes{ pod_name!=""}) by (pod_name)) < 2
+        for: 5m
+        annotations:
+          summary: "({{ cluster_id }}){{ $labels.pod_name }} mem usage over 90%. Current value: {{ $value }}%"
+      - alert: Application_rbd_space_is_less_than_10G
+        expr: (kubelet_volume_stats_available_bytes/1024/1024/1024) < 10
+        for: 5m
+        annotations:
+          summary: "({{ cluster_id }}){{ $labels.pod_name }} rbd space is less than 10G. Current value: {{ $value }}"

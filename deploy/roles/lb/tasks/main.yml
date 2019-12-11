@@ -1,0 +1,28 @@
+---
+- name: Install nginx and keepalived on Ubuntu server
+  apt: name={{ item }} state=latest
+  with_items:
+  - nginx
+  - keepalived
+
+- name: Modify nginx.conf
+  template: src=nginx.conf.j2 dest=/etc/nginx/nginx.conf
+
+- name: Restart Nginx service
+  service:
+    name: nginx
+    enabled: yes
+    state: restarted
+
+- name: Modify keepalived.conf
+  template: src=keepalived.conf.j2 dest=/etc/keepalived/keepalived.conf
+
+- name: Create nginx check scripts
+  copy: src=check_nginx.sh dest=/etc/keepalived/check_nginx.sh
+
+- name: Restart Keepalived service
+  service:
+    name: keepalived
+    enabled: yes
+    state: started
+

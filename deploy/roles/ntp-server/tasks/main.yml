@@ -1,0 +1,9 @@
+---
+- name: Install ntp server
+  apt: name={{ item }} state=latest
+  with_items:
+  - ntp
+
+- name: Restart NTP server
+  service: name=ntp state=restarted
+

@@ -1,0 +1,5 @@
+127.0.0.1   localhost
+{{ m1_manager_ip }} {{ m1_hostname }}
+{{ m2_manager_ip }} {{ m2_hostname }}
+{{ m3_manager_ip }} {{ m3_hostname }}
+

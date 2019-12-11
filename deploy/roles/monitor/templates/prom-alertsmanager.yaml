@@ -1,0 +1,21 @@
+alertmanagerFiles:
+  alertmanager.yml:
+    global:
+      smtp_smarthost: {{ email_host }}
+      smtp_from: {{ email_user }}
+      smtp_auth_username: {{ email_user }}
+      smtp_auth_password: {{ email_passwd }}
+      smtp_require_tls: false
+
+    route:
+      group_by: ['alertname', 'pod_name']
+      group_wait: 10s
+      group_interval: 5m
+      receiver: AlertMail
+      repeat_interval: 3h
+
+    receivers:
+    - name: 'AlertMail'
+      email_configs:
+      - to: {{ email_receivers }}
+

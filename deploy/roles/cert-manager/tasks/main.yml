@@ -1,0 +1,38 @@
+---
+- name: Create cert-manager dir
+  file: name={{ yaml_dir }}/cert-manager state=directory
+
+- name: Download cert-manager CRD
+  get_url:
+    url: "https://raw.githubusercontent.com/jetstack/cert-manager/release-{{ certmanager_version }}/deploy/manifests/00-crds.yaml"
+    dest: "{{ yaml_dir }}/cert-manager/00-crds.yaml"
+
+- name: Define cert-manager crds
+  shell: "kubectl get CustomResourceDefinition|grep certificates.certmanager.k8s.io || kubectl create -f {{ yaml_dir }}/cert-manager/00-crds.yaml"
+
+- name: Create the namespace for cert-manager
+  shell: "kubectl  get ns|grep cert-manager || kubectl create ns cert-manager"
+
+- name: Label the cert-manager namespace to disable resource validation
+  shell: "kubectl get namespace cert-manager -o yaml|grep disable-validation || kubectl label namespace cert-manager certmanager.k8s.io/disable-validation=true"
+
+- name: Add the Jetstack Helm repository
+  command: helm repo add jetstack https://charts.jetstack.io
+
+- name: Update your local Helm chart repository cache
+  command: helm repo update
+
+- name: Create cert-manager values file
+  copy: src=cert-manager-values.yaml dest={{ yaml_dir }}/cert-manager/cert-manager-values.yaml
+
+- name: Install the cert-manager Helm chart
+  shell: "helm list --tls|grep cert-manager || helm install   --name cert-manager -f {{ yaml_dir }}/cert-manager/cert-manager-values.yaml  --namespace cert-manager   --version v{{ certmanager_version }}.1   jetstack/cert-manager --set podDnsPolicy=None --set podDnsConfig.nameservers[0]=1.1.1.1 --set podDnsConfig.nameservers[1]=8.8.8.8 --tls"
+
+- name: Create letsencrypt issuer file
+  copy: src=letsencrypt.yaml dest={{ yaml_dir }}/cert-manager/letsencrypt.yaml
+  
+- name: Waitting cert-manager namespace running
+  shell: sleep 30
+
+- name: Create letsencrypt issuer
+  shell: "kubectl get ClusterIssuer |grep letsencrypt-staging || kubectl create -f {{ yaml_dir }}/cert-manager/letsencrypt.yaml"

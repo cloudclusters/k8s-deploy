@@ -1,0 +1,25 @@
+- hosts:
+  - master01
+  - master02
+  - master03 
+  gather_facts: False
+  roles:
+  - preinstall
+- hosts:
+  - master01
+  gather_facts: False
+  roles:
+  - ntp-server
+- hosts:
+  - master02
+  - master03
+  gather_facts: False
+  roles:
+  - ntp-client
+
+
+
+
+
+
+

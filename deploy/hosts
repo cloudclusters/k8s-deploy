@@ -1,0 +1,84 @@
+# Kubernetes nodes
+[master01]
+192.168.10.148 host_name=master1
+
+[master02]
+192.168.10.149 host_name=master2
+
+[master03]
+192.168.10.151 host_name=master3
+
+[nodes]
+192.168.10.152 host_name=node1
+192.168.10.153 host_name=node2
+192.168.10.155 host_name=node3
+
+# Nginx load balancing ("ens7" is the name of the internal network card)
+[lb]
+192.168.10.148 if="ens7" lb_role=master priority=100 host_name=master1 
+192.168.10.149 if="ens7" lb_role=backup priority=90 host_name=master2
+192.168.10.151 if="ens7" lb_role=backup priority=80 host_name=master3
+
+[all:vars]
+# master1's hostname
+m1_hostname=master1
+# master1's private network ip 
+m1_manager_ip=192.168.10.148
+
+# Same as above
+m2_hostname=master2
+m2_manager_ip=192.168.10.149
+
+m3_hostname=master3
+m3_manager_ip=192.168.10.151
+
+# Software version
+docker_version=18.09.3
+kubelet_version=1.14.0-00
+kubectl_version=1.14.0-00
+kubeadm_version=1.14.0-00
+kubernetes_version=v1.14.0
+etcd_version=v3.3.4
+helm_version=v2.14.1
+certmanager_version=0.9
+
+# dnsDomain on kubeadm-config.yaml define 
+domain="example.com"
+# Kubernetes API Server
+keepalived_vip="192.168.10.100"
+
+ingress_upload_file_size="512m"
+
+cluster_id="C001"
+
+# Use lb node as etcd node
+# No changes to the variables "tmp_nodes" and "etcd_nodes"
+tmp_nodes="{% for h in groups['lb'] %}{{ hostvars[h]['host_name'] }}=https://{{ h }}:2380,{% endfor %}"
+etcd_nodes="{{ tmp_nodes.rstrip(',') }}"
+
+# Network plugin (calico or flannel)
+network_plugin="flannel"
+# pod network
+pod_network="10.244.0.0/16"
+
+bin_dir="/usr/local/bin"
+
+# The etcd certificates directory on kubernetes master nodes
+etcd_ca_dir="/etc/etcd/ssl"
+
+
+# Kubernetes apps yaml directory
+yaml_dir="/root/.kube-init"
+
+# Kubernetes certificates directory
+kube_cert_dir="/etc/kubernetes/pki"
+
+# Kubernetes config path
+kube_config_dir="/etc/kubernetes"
+
+# Monitor email send define
+email_host="mail.example.io:25"
+email_user="monitor@example.io"
+email_passwd="123456"
+email_receivers="user@gamil.com"
+

@@ -1,0 +1,36 @@
+global_defs {
+   router_id LVS_k8s
+}
+
+vrrp_script CheckNginx {
+    script "/etc/keepalived/check_nginx.sh"
+    interval 3
+    timeout 9
+    fall 2
+    rise 2
+}
+
+vrrp_instance VI_1 {
+    state {{ lb_role }}
+    interface {{ if }}
+    virtual_router_id 61
+    priority {{ priority }}
+    advert_int 1
+    mcast_src_ip {{ inventory_hostname }}
+    nopreempt
+    authentication {
+        auth_type PASS
+        auth_pass sqP05dQgMSlzrxHj
+    }
+    unicast_peer {
+    {% for h in groups['lb'] %}{% if h != inventory_hostname %}
+        {{ h }}
+    {% endif %}{% endfor %}
+    }
+    virtual_ipaddress {
+        {{ keepalived_vip }}/24
+    }
+    track_script {
+        CheckNginx
+    }
+}

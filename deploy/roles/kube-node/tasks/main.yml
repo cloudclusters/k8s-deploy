@@ -1,0 +1,11 @@
+- name: Create kubectl config folder
+  file: name=/root/.kube state=directory
+
+- name: Get joining command from init master
+  copy: src={{ kube_cert_dir }}/node_join dest=/root/.kube/node_join
+
+- name: Join current node into the cluster
+  shell: eval $(cat /root/.kube/node_join)
+
+
+

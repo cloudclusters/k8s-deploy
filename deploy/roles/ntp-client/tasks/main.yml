@@ -1,0 +1,16 @@
+---
+- name: Install ntp and ntpdate
+  apt: name={{ item }} state=latest
+  with_items:
+  - ntp
+  - ntpdate
+
+- name: Disable the default Ubuntu systemd's timesyncd service
+  shell: timedatectl set-ntp off
+
+- name: Set preferred NTP server
+  shell: echo server {{ m1_hostname }} prefer iburst >> /etc/ntp.conf
+
+- name: Restart NTP server
+  service: name=ntp state=restarted
+

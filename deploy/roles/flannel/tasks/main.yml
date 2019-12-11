@@ -1,0 +1,8 @@
+- name: Create yaml folder
+  file: name={{ yaml_dir }} state=directory
+
+- name: Get flannel yaml file
+  template: src=flannel.yaml.j2 dest={{ yaml_dir }}/flannel.yaml
+
+- name: Create flannel POD network
+  raw: kubectl get po -n kube-system|grep flannel || kubectl create -f {{ yaml_dir }}/flannel.yaml

@@ -1,0 +1,46 @@
+---
+- name: Download etcd release
+  get_url:
+    url: "https://github.com/coreos/etcd/releases/download/{{ etcd_version }}/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
+    dest: "/opt/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
+    mode: 0755
+
+- name: Uzip downloaded file
+  unarchive:
+    src: "/opt/etcd-{{ etcd_version }}-linux-amd64.tar.gz"
+    dest: "/opt/"
+
+- name: Copy etcd binaries to destination directory
+  copy:
+    src: "/opt/etcd-{{ etcd_version }}-linux-amd64/{{ item }}"
+    dest: "{{ bin_dir }}/{{ item }}"
+    mode: 0755
+  with_items:
+  - etcd
+  - etcdctl
+
+- name: Create etcd ca dir
+  file: name={{ item }} state=directory
+  with_items:
+  - "{{ etcd_ca_dir }}"
+
+- name: Get certificates
+  copy: src=/opt/ssl/{{ item }} dest={{ etcd_ca_dir }}/{{ item }}
+  with_items:
+  - ca-key.pem
+  - ca.pem
+  - etcd-key.pem
+  - etcd.pem
+
+- name: Create etcd working dir
+  file: name=/var/lib/etcd state=directory
+
+- name: Create etcd systemd unit file
+  template: src=etcd.service.j2 dest=/etc/systemd/system/etcd.service
+
+- name: Start etcd service
+  service:
+    name: etcd
+    enabled: yes
+    state: started
+

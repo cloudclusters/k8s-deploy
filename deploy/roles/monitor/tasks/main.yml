@@ -1,0 +1,15 @@
+---
+- name: Get prometheus pkg
+  copy: src=prometheus dest={{ yaml_dir }}/
+
+- name: Modify alertsmanager file
+  template: src=prom-alertsmanager.yaml dest={{ yaml_dir }}/prometheus/prom-alertsmanager.yaml
+
+- name: Modify alertrules file
+  replace: dest={{ yaml_dir }}/prometheus/prom-alertrules.yaml regexp=cluster_id replace={{ cluster_id }}
+
+- name: Install prometheus
+  shell: "cd {{ yaml_dir }}/prometheus && helm install --name monitor --namespace monitoring -f prom-settings.yaml -f prom-alertsmanager.yaml -f prom-alertrules.yaml prometheus --tls"
+
+- name: Install grafana
+  shell: "cd {{ yaml_dir }}/prometheus && helm install --name grafana --namespace monitoring -f grafana-settings.yaml -f grafana-dashboards.yaml grafana --tls"

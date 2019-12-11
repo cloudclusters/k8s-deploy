@@ -1,0 +1,12 @@
+- hosts:
+  - master02
+  - master03 
+  gather_facts: False
+  roles:
+  - other-master
+
+
+
+
+
+
