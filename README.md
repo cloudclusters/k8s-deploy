@@ -5,7 +5,7 @@ K8s-deploy
  [![](https://img.shields.io/badge/docs-latest-brightgreen.svg)](https://img.shields.io/badge/docs-latest-brightgreen.svg)
  [![](https://img.shields.io/badge/license-MIT-green)](https://img.shields.io/badge/license-MIT-green)
  
-<img src="images/cloudclusters-36.png" width="100">  
+<img src="images/cloudclusters.png" width="100">  
 
 ----   
 
