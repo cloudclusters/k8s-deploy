@@ -9,7 +9,7 @@ K8s-deploy
 
 ----   
 
-Automatic deployment of `Kubernetes cluster` via ansible script. 
+Ansible playbook for deploying a `Kubernetes` cluster. 
 &nbsp;
 
 
@@ -29,20 +29,20 @@ Automatic deployment of `Kubernetes cluster` via ansible script.
 
 ## Requirements
 
-- Ansible
-- Python 2.7+
+- Ansible, on master1.
+- Python 2.7+, on all server.
 
 &nbsp;
 
 ## Installation
 
-1.&nbsp;Log in to master1 and download the deployment file.
+1.&nbsp;Log in to master1 and download the deployment scripts.
 ```shell
 export K8S_INSTALL_DIR="/opt"
 cd $K8S_INSTALL_DIR
 git clone https://github.com/cloudclusters/k8s-deploy.git
 ```
-2.&nbsp;Install ansible, configure secret-key free login to other nodes on master1.
+2.&nbsp;Install Ansbile on master1 and enable passwordless SSH from master1 to other servers.
 ```shell
 apt-get install ansible -y
 ```
@@ -140,7 +140,7 @@ email_passwd="123456"
 email_receivers="user@gamil.com"
 ```
 
-5.&nbsp;Ansible-playbook performs installation of Kubernetes.
+5.&nbsp;Run Ansible playbook to deploy Kubernetes cluster.
 ```shell
 ansible-playbook deploy.yaml
 ```
@@ -183,7 +183,7 @@ vim hosts
 192.168.10.156 host_name=node4
 ```
 
-3.&nbsp;Execute  07-add-node.yml on master1.
+3.&nbsp;Run playbook 07-add-node.yml on master1.
 ```shell
 ansible-playbook 07-add-node.yml
 ```
